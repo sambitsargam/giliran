@@ -32,7 +32,7 @@ const STEPS = [
   { title: "Watch the pot pay out", short: "Payout" },
   { title: "Try to run with the money", short: "Steal" },
   { title: "Spot the fake circle", short: "Check" },
-  { title: "Open your Passport", short: "Passport" },
+  { title: "Open your Passport", short: "Pass" },
 ];
 
 async function post<T>(path: string, body: unknown): Promise<T> {
@@ -114,7 +114,7 @@ export function DemoFlow() {
                   aria-current={active ? "step" : undefined}
                 >
                   <span className={`h-2 w-full rounded-full ${active ? "weave" : done ? "bg-pandan" : "bg-sand"}`} aria-hidden />
-                  <span className="flex min-h-[44px] items-center gap-2">
+                  <span className="flex min-h-[44px] w-full flex-col items-center gap-1 sm:flex-row sm:items-center sm:gap-2">
                     <span
                       className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-black ${
                         active ? "bg-ink text-cream" : done ? "bg-pandan text-white" : "bg-surface-2 text-ink-soft"
@@ -123,7 +123,7 @@ export function DemoFlow() {
                       {done && !active ? "✓" : i + 1}
                     </span>
                     <span className={`hidden text-sm font-semibold sm:inline ${active ? "" : "text-ink-soft"}`}>{s.title}</span>
-                    <span className={`text-xs font-semibold sm:hidden ${active ? "" : "text-ink-soft"}`}>{s.short}</span>
+                    <span className={`max-w-full truncate text-[11px] font-semibold sm:hidden ${active ? "" : "text-ink-soft"}`}>{s.short}</span>
                   </span>
                 </button>
               </li>
@@ -215,14 +215,18 @@ function StepJoin({ saved, update, onNext }: { saved: Saved; update: (p: Partial
     }
   }, [saved.circle, refetch]);
 
-  // As soon as the judge's join fills the circle, the demo organiser reveals the order.
-  const triggered = useRef(false);
+  // As soon as the judge's join fills the circle, the demo organiser reveals the order;
+  // keep asking every few seconds in case the first request raced the join.
+  const lastAsk = useRef(0);
   useEffect(() => {
-    if (d?.state === CircleState.Drawing && !triggered.current) {
-      triggered.current = true;
+    if (d?.state !== CircleState.Drawing || revealing) return;
+    const wait = Math.max(0, 6000 - (Date.now() - lastAsk.current));
+    const id = setTimeout(() => {
+      lastAsk.current = Date.now();
       reveal();
-    }
-  }, [d?.state, reveal]);
+    }, wait);
+    return () => clearTimeout(id);
+  }, [d?.state, revealing, reveal]);
 
   const join = async () => {
     if (!d) return;

@@ -190,7 +190,12 @@ async function circleState(circle: Address) {
 
 /** Reveals the order for a full demo circle using the server-held commit secret. */
 export async function revealDemo(circle: Address): Promise<{ hash?: Hash; status: string }> {
-  const { state, fillBlock } = await circleState(circle);
+  // Load-balanced RPC nodes can lag the block that filled the circle; give them a moment.
+  let { state, fillBlock } = await circleState(circle);
+  for (let i = 0; i < 8 && state === CircleState.Joining; i++) {
+    await new Promise((r) => setTimeout(r, 2000));
+    ({ state, fillBlock } = await circleState(circle));
+  }
   if (state === CircleState.Active || state === CircleState.Completed) return { status: "already-drawn" };
   if (state !== CircleState.Drawing) return { status: "not-full" };
   const { deployer } = accounts();

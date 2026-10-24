@@ -30,9 +30,11 @@ Two more gaps: years of disciplined saving leave **no credit record** at any len
 4. **Savings Passport.** A `SavingsRegistry` (writable only by factory circles) counts on-time, late and missed payments and completed circles, and writes an EAS attestation for each outcome.
 5. **"Is this a real circle?"** A checker reads any contract's claims (fee, promised return, pot size, member deposits, owner) and explains each red flag in plain words.
 
-| Circle room | Checker: fake vs real | Passport |
-| --- | --- | --- |
-| ![Circle room](docs/screenshots/circle-room-mobile.png) | ![Fake](docs/screenshots/checker-fake-mobile.png) | ![Passport](docs/screenshots/passport-mobile.png) |
+![Round 1 paying out live](docs/screenshots/circle-room-payout-desktop.png)
+
+| Run with the money? Reverted. | Checker: fake | Checker: real | Passport |
+| --- | --- | --- | --- |
+| ![Withdraw reverted](docs/screenshots/withdraw-reverted-mobile.png) | ![Fake](docs/screenshots/checker-fake-mobile.png) | ![Real](docs/screenshots/checker-real-mobile.png) | ![Passport](docs/screenshots/passport-mobile.png) |
 
 ## Contracts (Base Sepolia, chain 84532)
 
