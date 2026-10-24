@@ -1,0 +1,48 @@
+# node
+node_modules/
+.pnpm-store/
+.next/
+out/
+dist/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+playwright-report/
+test-results/
+
+# foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/*/31337/
+contracts/broadcast/**/dry-run/
+
+# env and secrets
+.env
+.env.*
+!.env.example
+*.pem
+
+# deploy
+.vercel
+
+# editor / os
+.DS_Store
+.idea/
+.vscode/
+
+# local tool and assistant config (never tracked)
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+.claude/
+.cursor/
+.cursorrules
+.aider*
+.continue/
+.windsurf/
+.windsurfrules
+.github/copilot-instructions.md
+copilot-instructions.md
+.codex/
+.gemini/
+prompt.md
