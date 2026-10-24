@@ -1,6 +1,7 @@
 // Demo bot maintenance.
 //   pnpm bots:fund [--eth]   faucet tUSDC for each bot; with --eth, top up gas from the deployer
 //   pnpm bots:bootstrap      run one bot-only circle to completion so bots reach tier 1
+//   pnpm bots:recycle        refund expired unfilled demo circles, settle due rounds, then fund
 import { readFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import {
@@ -47,6 +48,11 @@ const circleAbi = parseAbi([
   "function fillBlock() view returns (uint256)",
   "function currentRound() view returns (uint256)",
   "function roundStart(uint256) view returns (uint256)",
+]);
+const recycleAbi = parseAbi([
+  "function joinDeadline() view returns (uint64)",
+  "function depositOf(address) view returns (uint256)",
+  "function refundUnfilled()",
 ]);
 const registryAbi = parseAbi(["function tierOf(address) view returns (uint8)"]);
 
@@ -122,7 +128,45 @@ async function bootstrap() {
   }
 }
 
+// Refund expired unfilled demo circles and settle due rounds, so abandoned demos don't strand bot funds.
+async function recycle() {
+  const head = await pub.getBlockNumber();
+  const from = BigInt(dep.deployBlock);
+  const circles = [];
+  for (let start = from; start <= head; start += 9_000n) {
+    const end = start + 8_999n > head ? head : start + 8_999n;
+    const logs = await pub.getLogs({ address: dep.CircleFactory, event: factoryAbi.find((x) => x.name === "CircleCreated"), args: { organiser: deployer.address }, fromBlock: start, toBlock: end });
+    circles.push(...logs.map((l) => l.args.circle));
+  }
+  console.log(`${circles.length} demo circles`);
+  const now = BigInt(Math.floor(Date.now() / 1000));
+  for (const c of circles) {
+    const state = await pub.readContract({ address: c, abi: circleAbi, functionName: "state" });
+    if (state === 0 || state === 4) {
+      const deadline = await pub.readContract({ address: c, abi: recycleAbi, functionName: "joinDeadline" });
+      if (now <= deadline) continue;
+      for (const b of bots) {
+        const owedDeposit = await pub.readContract({ address: c, abi: recycleAbi, functionName: "depositOf", args: [b.address] });
+        if (owedDeposit > 0n) {
+          await done(await w(b).writeContract({ address: c, abi: recycleAbi, functionName: "refundUnfilled" })).catch(() => undefined);
+          console.log(`refunded ${b.address.slice(0, 8)} from ${c}`);
+        }
+      }
+    } else if (state === 2) {
+      try {
+        await pub.simulateContract({ address: c, abi: circleAbi, functionName: "settleRound", account: deployer.address });
+        await done(await w(deployer).writeContract({ address: c, abi: circleAbi, functionName: "settleRound" }));
+        console.log(`settled a round of ${c}`);
+      } catch {
+        // not due yet
+      }
+    }
+  }
+  await fund();
+}
+
 const cmd = process.argv[2];
 if (cmd === "fund") await fund();
 else if (cmd === "bootstrap") await bootstrap();
-else console.log("usage: node scripts/bots.mjs fund [--eth] | bootstrap");
+else if (cmd === "recycle") await recycle();
+else console.log("usage: node scripts/bots.mjs fund [--eth] | bootstrap | recycle");

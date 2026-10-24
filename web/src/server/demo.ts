@@ -4,18 +4,18 @@ import {
   createWalletClient,
   encodeAbiParameters,
   encodeFunctionData,
+  fallback,
   http,
   keccak256,
   nonceManager,
   parseEther,
   parseEventLogs,
-  toHex,
   type Address,
   type Hash,
   type Hex,
 } from "viem";
 import { privateKeyToAccount, type PrivateKeyAccount } from "viem/accounts";
-import { randomBytes } from "node:crypto";
+import { createHmac } from "node:crypto";
 import { baseSepolia } from "viem/chains";
 import { addresses, circleAbi, circleFactoryAbi, mockUsdcAbi, CircleState } from "@/lib/contracts";
 import { decrypt, encrypt, kvGet, kvSet } from "./store";
@@ -38,8 +38,14 @@ export const BOT_PROFILES = [
   { name: "Mbak Dewi", emoji: "🧵" },
 ];
 
-const rpc = process.env.RPC_URL || process.env.NEXT_PUBLIC_RPC_URL || "https://sepolia.base.org";
-export const server = createPublicClient({ chain: baseSepolia, transport: http(rpc), pollingInterval: 1_000 });
+// Public endpoints throttle datacenter IPs now and then; fall through several with retries.
+const RPCS = [
+  process.env.RPC_URL || process.env.NEXT_PUBLIC_RPC_URL || "https://sepolia.base.org",
+  "https://base-sepolia-rpc.publicnode.com",
+  "https://base-sepolia.drpc.org",
+];
+const transport = () => fallback(RPCS.map((u) => http(u, { retryCount: 2, retryDelay: 400, timeout: 20_000 })));
+export const server = createPublicClient({ chain: baseSepolia, transport: transport(), pollingInterval: 1_000 });
 
 function normKey(k: string): Hex {
   const t = k.trim();
@@ -65,7 +71,7 @@ export function accounts() {
 }
 
 export function wallet(account: PrivateKeyAccount) {
-  return createWalletClient({ account, chain: baseSepolia, transport: http(rpc) });
+  return createWalletClient({ account, chain: baseSepolia, transport: transport() });
 }
 
 async function confirm(hash: Hash) {
@@ -75,6 +81,17 @@ async function confirm(hash: Hash) {
 }
 
 type DemoRecord = { secret: Hex; judge?: Address; createdAt: number };
+
+/**
+ * Demo secrets are derived, not stored: HMAC(DEMO_SECRET_KEY, joinDeadline). The server picks the
+ * deadline and can read it back from the circle, so any serverless instance can reveal, while
+ * nobody without the key can predict the secret.
+ */
+export function demoSecret(joinDeadline: bigint): Hex {
+  const key = process.env.DEMO_SECRET_KEY || process.env.DEPLOYER_PRIVATE_KEY || "";
+  if (!key) throw new Error("Demo server is not configured (missing DEMO_SECRET_KEY).");
+  return `0x${createHmac("sha256", key).update(`giliran-demo:${joinDeadline}`).digest("hex")}`;
+}
 
 export async function saveDemo(circle: Address, rec: DemoRecord) {
   await kvSet(`demo:${circle.toLowerCase()}`, encrypt(JSON.stringify(rec)), 60 * 60 * 24 * 7);
@@ -122,9 +139,10 @@ export async function dripEth(to: Address): Promise<Hash | null> {
 /** Creates a 5-seat demo circle, seats four prepaid bots, and leaves the last seat for the judge. */
 export async function createDemoCircle(judge?: Address) {
   const { deployer, bots } = accounts();
-  const secret = toHex(randomBytes(32));
-  const commit = keccak256(encodeAbiParameters([{ type: "bytes32" }, { type: "address" }], [secret, deployer.address]));
   const now = Math.floor(Date.now() / 1000);
+  const joinDeadline = BigInt(now + DEMO.joinWindow);
+  const secret = demoSecret(joinDeadline);
+  const commit = keccak256(encodeAbiParameters([{ type: "bytes32" }, { type: "address" }], [secret, deployer.address]));
 
   const [createHash, dripHash] = await Promise.all([
     wallet(deployer).writeContract({
@@ -138,7 +156,7 @@ export async function createDemoCircle(judge?: Address) {
           memberCap: DEMO.members,
           roundDuration: DEMO.roundDuration,
           graceDuration: DEMO.graceDuration,
-          joinDeadline: BigInt(now + DEMO.joinWindow),
+          joinDeadline,
           demo: true,
         },
         commit,
@@ -172,19 +190,27 @@ async function circleState(circle: Address) {
 
 /** Reveals the order for a full demo circle using the server-held commit secret. */
 export async function revealDemo(circle: Address): Promise<{ hash?: Hash; status: string }> {
-  const rec = await loadDemo(circle);
   const { state, fillBlock } = await circleState(circle);
   if (state === CircleState.Active || state === CircleState.Completed) return { status: "already-drawn" };
   if (state !== CircleState.Drawing) return { status: "not-full" };
-  if (!rec) throw new Error("This demo circle's secret isn't held by this server. Use the fallback draw after the timeout.");
+  const { deployer } = accounts();
+  const [joinDeadline, commit] = await Promise.all([
+    server.readContract({ address: circle, abi: circleAbi, functionName: "joinDeadline" }),
+    server.readContract({ address: circle, abi: circleAbi, functionName: "orderCommit" }),
+  ]);
+  let secret = demoSecret(joinDeadline);
+  if (keccak256(encodeAbiParameters([{ type: "bytes32" }, { type: "address" }], [secret, deployer.address])) !== commit) {
+    const rec = await loadDemo(circle);
+    if (!rec) throw new Error("This server doesn't hold the secret for that circle. Use the fallback draw after the timeout.");
+    secret = rec.secret;
+  }
 
   // blockhash(fillBlock + 1) must exist, so wait for one more block.
   for (let i = 0; i < 20; i++) {
     if ((await server.getBlockNumber()) > fillBlock + 1n) break;
     await new Promise((r) => setTimeout(r, 1000));
   }
-  const { deployer } = accounts();
-  const hash = await wallet(deployer).writeContract({ address: circle, abi: circleAbi, functionName: "revealOrder", args: [rec.secret] });
+  const hash = await wallet(deployer).writeContract({ address: circle, abi: circleAbi, functionName: "revealOrder", args: [secret] });
   await confirm(hash);
   return { hash, status: "revealed" };
 }

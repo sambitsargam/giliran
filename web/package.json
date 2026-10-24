@@ -12,7 +12,8 @@
     "test:e2e": "playwright test",
     "sync:deployments": "node ../scripts/sync-deployments.mjs",
     "bots:fund": "node --env-file=.env.local scripts/bots.mjs fund",
-    "bots:bootstrap": "node --env-file=.env.local scripts/bots.mjs bootstrap"
+    "bots:bootstrap": "node --env-file=.env.local scripts/bots.mjs bootstrap",
+    "bots:recycle": "node --env-file=.env.local scripts/bots.mjs recycle"
   },
   "dependencies": {
     "@coinbase/wallet-sdk": "^4.4.0",
