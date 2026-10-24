@@ -1,0 +1,299 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ------------------------------------------------------------------
+   Tokens: "the circle is a woven mat" — banig dyes on rice paper.
+   ------------------------------------------------------------------ */
+:root {
+  --ink: #1e1b4b;
+  --ink-soft: #4a4677;
+  --marigold: #f2a93b;
+  --marigold-deep: #b86e0a;
+  --terracotta: #c2553b;
+  --pandan: #2f8f6b;
+  --pandan-ink: #1f6b4f;
+  --cream: #fbf6ec;
+  --surface: #fffdf8;
+  --surface-2: #f5ecdb;
+  --sand: #e8dcc4;
+  --sand-deep: #d4c3a3;
+  --on-accent: #1e1b4b;
+  --focus: #1e1b4b;
+  --shadow: 30 27 75;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink: #f4eedf;
+    --ink-soft: #b9b3d9;
+    --marigold: #f6b955;
+    --marigold-deep: #f6b955;
+    --terracotta: #ef8a6f;
+    --pandan: #45c08f;
+    --pandan-ink: #5fd3a3;
+    --cream: #12102e;
+    --surface: #1a1740;
+    --surface-2: #221e4f;
+    --sand: #2f2a63;
+    --sand-deep: #3d3778;
+    --on-accent: #12102e;
+    --focus: #f6b955;
+    --shadow: 0 0 0;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ink: #f4eedf;
+  --ink-soft: #b9b3d9;
+  --marigold: #f6b955;
+  --marigold-deep: #f6b955;
+  --terracotta: #ef8a6f;
+  --pandan: #45c08f;
+  --pandan-ink: #5fd3a3;
+  --cream: #12102e;
+  --surface: #1a1740;
+  --surface-2: #221e4f;
+  --sand: #2f2a63;
+  --sand-deep: #3d3778;
+  --on-accent: #12102e;
+  --focus: #f6b955;
+  --shadow: 0 0 0;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-marigold: var(--marigold);
+  --color-marigold-deep: var(--marigold-deep);
+  --color-terracotta: var(--terracotta);
+  --color-pandan: var(--pandan);
+  --color-pandan-ink: var(--pandan-ink);
+  --color-cream: var(--cream);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-sand: var(--sand);
+  --color-sand-deep: var(--sand-deep);
+  --color-on-accent: var(--on-accent);
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --radius-mat: 1.25rem;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+/* Display type: Fraunces with a soft optical size. */
+.font-display {
+  font-family: var(--font-display);
+  font-variation-settings: "SOFT" 100, "WONK" 0;
+  letter-spacing: -0.015em;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* ------------------------------------------------------------------
+   Weave textures (abstract banig: interlocking diagonals)
+   ------------------------------------------------------------------ */
+.weave {
+  background-color: var(--surface-2);
+  background-image:
+    repeating-linear-gradient(45deg, color-mix(in oklab, var(--marigold) 22%, transparent) 0 6px, transparent 6px 12px),
+    repeating-linear-gradient(-45deg, color-mix(in oklab, var(--terracotta) 14%, transparent) 0 6px, transparent 6px 12px);
+}
+
+.weave-soft {
+  background-image:
+    repeating-linear-gradient(45deg, color-mix(in oklab, var(--sand-deep) 35%, transparent) 0 2px, transparent 2px 14px),
+    repeating-linear-gradient(-45deg, color-mix(in oklab, var(--sand-deep) 35%, transparent) 0 2px, transparent 2px 14px);
+}
+
+.weave-band {
+  height: 14px;
+  background-image:
+    linear-gradient(90deg, var(--marigold) 0 25%, var(--terracotta) 25% 50%, var(--ink) 50% 75%, var(--pandan) 75% 100%);
+  background-size: 56px 100%;
+  -webkit-mask: repeating-linear-gradient(45deg, #000 0 5px, transparent 5px 8px),
+    repeating-linear-gradient(-45deg, #000 0 5px, transparent 5px 8px);
+  mask: repeating-linear-gradient(45deg, #000 0 5px, transparent 5px 8px),
+    repeating-linear-gradient(-45deg, #000 0 5px, transparent 5px 8px);
+  -webkit-mask-composite: source-over;
+  opacity: 0.9;
+}
+
+.mat-card {
+  background: var(--surface);
+  border: 1px solid var(--sand);
+  border-radius: var(--radius-mat);
+  box-shadow: 0 1px 0 rgb(var(--shadow) / 0.04), 0 10px 30px -18px rgb(var(--shadow) / 0.35);
+}
+
+.ribbon-pass {
+  background-image: repeating-linear-gradient(
+    45deg,
+    color-mix(in oklab, var(--pandan) 85%, transparent) 0 8px,
+    color-mix(in oklab, var(--pandan) 65%, transparent) 8px 16px
+  );
+}
+
+.ribbon-fail {
+  background-image: repeating-linear-gradient(
+    45deg,
+    color-mix(in oklab, var(--terracotta) 90%, transparent) 0 8px,
+    color-mix(in oklab, var(--terracotta) 70%, transparent) 8px 16px
+  );
+}
+
+.ribbon-unknown {
+  background-image: repeating-linear-gradient(
+    45deg,
+    color-mix(in oklab, var(--sand-deep) 90%, transparent) 0 8px,
+    color-mix(in oklab, var(--sand-deep) 60%, transparent) 8px 16px
+  );
+}
+
+/* Skeletons echo the weave rather than flat grey bars. */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--surface-2);
+  background-image:
+    repeating-linear-gradient(45deg, color-mix(in oklab, var(--sand-deep) 40%, transparent) 0 4px, transparent 4px 10px);
+  border-radius: 10px;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--surface) 70%, transparent), transparent);
+  animation: shimmer 1.6s infinite;
+}
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin-slow {
+  animation: spin-slow 60s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.65rem 1.15rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  transition:
+    transform 0.12s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+  cursor: pointer;
+  text-align: center;
+}
+.btn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.99);
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: var(--ink);
+  color: var(--cream);
+}
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 6px 18px -8px rgb(var(--shadow) / 0.6);
+}
+.btn-accent {
+  background: var(--marigold);
+  color: var(--on-accent);
+}
+.btn-accent:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--marigold) 88%, var(--ink));
+}
+.btn-danger {
+  background: var(--terracotta);
+  color: #fff;
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1.5px solid var(--sand-deep);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.field {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1.5px solid var(--sand-deep);
+  background: var(--surface);
+  color: var(--ink);
+  padding: 0.6rem 0.85rem;
+}
+.field:focus-visible {
+  outline-offset: 1px;
+}
+
+.link {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in oklab, var(--ink) 35%, transparent);
+}
+.link:hover {
+  text-decoration-color: var(--marigold);
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}

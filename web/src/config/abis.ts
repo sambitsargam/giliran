@@ -1905,7 +1905,7 @@ export const savingsRegistryAbi = [
   }
 ] as const;
 
-export const mockUSDCAbi = [
+export const mockUsdcAbi = [
   {
     "type": "function",
     "name": "FAUCET_AMOUNT",
