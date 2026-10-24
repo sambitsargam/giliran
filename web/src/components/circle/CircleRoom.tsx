@@ -15,7 +15,7 @@ import { useNow } from "@/hooks/useNow";
 import { useCircle, useCircleDerived, usePayoutHistory, memberRoundStatus, type CircleData } from "@/lib/useCircle";
 import { CircleState, STATE_LABEL } from "@/lib/contracts";
 import { formatDuration, formatMoney, shortAddress } from "@/lib/format";
-import { labelFor } from "@/lib/labels";
+import { avatarFor, labelFor } from "@/lib/labels";
 import { useI18n } from "@/lib/i18n";
 import { txUrl } from "@/lib/chain";
 
@@ -31,7 +31,7 @@ export function useRing(d: CircleData | undefined, now: number, you?: string) {
   const byAddr = new Map(d.members.map((m) => [m.address.toLowerCase(), m]));
   const beads: Bead[] = ordered.map((a, i) => {
     const m = byAddr.get(a.toLowerCase())!;
-    const l = mounted ? labelFor(a, you) : { label: shortAddress(a, 3) };
+    const l = mounted ? labelFor(a, you) : { label: shortAddress(a, 3), emoji: avatarFor(a) };
     return {
       address: a,
       label: l.label,
