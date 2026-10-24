@@ -2,25 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { useAccount, useDisconnect } from "wagmi";
+import { signIn } from "@/lib/signInStore";
 import { shortAddress } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
-
-export function useConnectPasskey() {
-  const { connectors, connectAsync, isPending } = useConnect();
-  const passkey = connectors.find((c) => c.id === "coinbaseWalletSDK") ?? connectors[0];
-  const other = connectors.find((c) => c.id === "injected");
-  return {
-    isPending,
-    connectPasskey: () => connectAsync({ connector: passkey }).catch(() => undefined),
-    connectOther: () => (other ? connectAsync({ connector: other }).catch(() => undefined) : undefined),
-  };
-}
 
 export function ConnectButton({ compact = false }: { compact?: boolean }) {
   const { address, isConnected } = useAccount();
   const { disconnect } = useDisconnect();
-  const { connectPasskey, connectOther, isPending } = useConnectPasskey();
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -75,17 +64,10 @@ export function ConnectButton({ compact = false }: { compact?: boolean }) {
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
-      <button className="btn btn-primary" onClick={connectPasskey} disabled={isPending}>
-        <PasskeyIcon />
-        {isPending ? "Opening…" : compact ? "Sign in" : t.connect}
-      </button>
-      {!compact && (
-        <button className="text-xs text-ink-soft link" onClick={connectOther}>
-          Use another wallet
-        </button>
-      )}
-    </div>
+    <button className="btn btn-primary" onClick={() => signIn.open()}>
+      <PasskeyIcon />
+      {compact ? "Sign in" : t.connect}
+    </button>
   );
 }
 

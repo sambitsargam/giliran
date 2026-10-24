@@ -8,7 +8,7 @@ import { ConnectButton } from "./ConnectButton";
 import { LanguageToggle, ThemeToggle } from "./Toggles";
 
 const NAV = [
-  { href: "/demo", label: "3-min demo" },
+  { href: "/demo", label: "Try it live" },
   { href: "/circle/new", label: "Create a circle" },
   { href: "/check", label: "Check a circle" },
   { href: "/how", label: "How it works" },

@@ -5,6 +5,7 @@ import { Providers } from "@/components/Providers";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { TxToaster } from "@/components/TxToaster";
+import { SignInSheet } from "@/components/SignInSheet";
 import { themeScript } from "@/components/Toggles";
 
 const fraunces = Fraunces({
@@ -53,6 +54,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           </main>
           <Footer />
           <TxToaster />
+          <SignInSheet />
         </Providers>
       </body>
     </html>

@@ -54,7 +54,7 @@ const en = {
   lenderScan: "Lenders: scan to verify on-chain",
   noStamps: "No stamps yet. The first on-time payment adds one.",
   passportPrivacy: "Counts only. No amounts, no names, no circle lists.",
-  connect: "Sign in with passkey",
+  connect: "Sign in",
   getTestMoney: "Get test money",
 };
 
@@ -103,7 +103,7 @@ const fil: Dict = {
   lenderScan: "Para sa nagpapautang: i-scan para i-verify on-chain",
   noStamps: "Wala pang tatak. Ang unang hulog na nasa oras ang magdadagdag nito.",
   passportPrivacy: "Bilang lamang. Walang halaga, walang pangalan, walang listahan ng paluwagan.",
-  connect: "Mag-sign in gamit ang passkey",
+  connect: "Mag-sign in",
   getTestMoney: "Kumuha ng test na pera",
 };
 
@@ -150,7 +150,7 @@ const id: Dict = {
   lenderScan: "Untuk pemberi pinjaman: pindai untuk verifikasi on-chain",
   noStamps: "Belum ada cap. Pembayaran tepat waktu pertama akan menambahkannya.",
   passportPrivacy: "Hanya jumlah kejadian. Tanpa nominal, tanpa nama, tanpa daftar arisan.",
-  connect: "Masuk dengan passkey",
+  connect: "Masuk",
   getTestMoney: "Ambil uang uji coba",
 };
 
