@@ -46,3 +46,6 @@ copilot-instructions.md
 .codex/
 .gemini/
 prompt.md
+
+# rendered demo video (distributed separately)
+demo-video/

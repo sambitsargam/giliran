@@ -124,7 +124,7 @@ export function CircleRoom({ address, compact = false }: { address: string; comp
                   : `ROUND ${d.currentRound} POT`
           }
           crownLabel={crown}
-          payoutKey={lastPayout ? `${lastPayout.round}-${lastPayout.hash}` : null}
+          payoutKey={lastPayout ? lastPayout.round : null}
           payoutTo={lastPayout?.recipient ?? null}
         />
         <p className="text-center text-xs text-ink-soft">

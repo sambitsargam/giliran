@@ -212,12 +212,9 @@ export function useCircle(address?: string) {
             if (seen.current.has(key)) continue;
             seen.current.add(key);
             const args = log.args as { round: bigint; recipient: Address; amount: bigint };
-            setLastPayout({
-              round: Number(args.round),
-              recipient: args.recipient,
-              amount: args.amount,
-              hash: log.transactionHash ?? undefined,
-            });
+            const p = { round: Number(args.round), recipient: args.recipient, amount: args.amount, hash: log.transactionHash ?? undefined };
+            // The state read may have announced this round already; just fill in the exact amount and tx.
+            setLastPayout((cur) => (cur && cur.round >= p.round && cur.round !== p.round ? cur : p));
           }
         }
         qc.invalidateQueries({ queryKey: circleQueryKey(address) });
@@ -228,6 +225,25 @@ export function useCircle(address?: string) {
     });
     return unwatch;
   }, [address, valid, qc]);
+
+  // Event filters on public RPCs can lag by many seconds, so also announce a payout the moment
+  // a state read shows the round advanced. The event later adds the exact amount and tx hash.
+  const prev = useRef<CircleData | undefined>(undefined);
+  const d = query.data;
+  useEffect(() => {
+    const before = prev.current;
+    prev.current = d;
+    if (!before || !d || before.address !== d.address) return;
+    const advanced = d.currentRound > before.currentRound || (d.state === CircleState.Completed && before.state === CircleState.Active);
+    if (!advanced || before.currentRound < 1 || before.order.length < before.currentRound) return;
+    const round = before.currentRound;
+    const paid = before.members.filter((m) => m.paidRounds >= round).length;
+    setLastPayout((cur) =>
+      cur && cur.round >= round
+        ? cur
+        : { round, recipient: before.order[round - 1], amount: before.contribution * BigInt(Math.max(paid, d.memberCount)) },
+    );
+  }, [d]);
 
   return { ...query, data: query.data, lastPayout, valid };
 }
